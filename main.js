@@ -67,7 +67,8 @@ var Topology = function (elementsToAddToTopology, nodesNumber) {
 
     this.unsetNode = function (nodeToUnset) {
         nodeToUnset.disconnectElements(nodeToUnset.elementsConnected);
-        _.pull(nodes, nodes[nodeToUnset.id]);
+        _.pull(nodes, nodeToUnset);
+        elements.push(new Element(nodeToUnset))
     };
 
 
@@ -231,18 +232,27 @@ var Node = function (buildCost, coordinates) {
 
 var coordDescendingMethod = function () {
     var topology = new Topology(ELEMENTS, 5);
-    console.log("До отвязки узла", topology.getTopologyCost());
+    // console.log("До отвязки узла", topology.getTopologyCost());
     topology.generateGraph();
 
     var currRearrangable = _.sample(topology.getNodes());
-    topology.unsetNode(currRearrangable);
-    console.log("После отвязки узла", topology.getTopologyCost());
+    // topology.unsetNode(currRearrangable);
+    // console.log("После отвязки узла", topology.getTopologyCost());
     // console.log("Elements count: ", topology.getElements().length);
     // console.log("Nodes count: ", topology.getNodes().length);
 
     this.rearrangeTopology = function (topologyToRearrange) {
-        var currRearrabngable = _.sample(topologyToRearrange);
+        console.log("BAFORE", topologyToRearrange.getNodes().length);
+        var currRearrabngable = _.sample(topologyToRearrange.getNodes());
+        topologyToRearrange.unsetNode(currRearrabngable);
+        console.log("AFTAR", topologyToRearrange.getNodes().length);
+        // console.log(util.inspect(topologyToRearrange, {depth:null}));
+        // for(var t = 0; t < topologyToRearrange.getElements().length; t++){
+        //     // _.random()
+        // }
     };
+
+    this.rearrangeTopology(topology)
 
 };
 
