@@ -70,6 +70,7 @@ var Topology = function (elementsToAddToTopology, nodesNumber) {
         _.pull(nodes, nodes[nodeToUnset.id]);
     };
 
+
     this.getNodes = function () {
         return nodes;
     };
