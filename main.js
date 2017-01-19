@@ -49,12 +49,12 @@ var Topology = function (elementsToAddToTopology, nodesNumber) {
         // console.log("sdadsa",r);
         _.each(elements, function () {
             while (nodesCount < nodesNumber) {
-                nodes.push(new Node(NODE_COST, r));
+                nodes.push(new Node(r));
                 var filter = _.filter(elements, function (fElement) {
                     return fElement.id == r.id
                 });
                 // console.log("removing elm №"+filter[0].id, filter);
-                _.pull(elements, filter[0]);
+                self.unsetElement(filter[0]);
                 nodesCount++;
             }
         });
@@ -65,10 +65,15 @@ var Topology = function (elementsToAddToTopology, nodesNumber) {
         nodes.push(nodeToSet);
     };
 
+    this.setNodeOnElementBase = function (tEl) {
+        nodes.push(new Node(tEl));
+    };
+
     this.unsetNode = function (nodeToUnset) {
         nodeToUnset.disconnectElements(nodeToUnset.elementsConnected);
         _.pull(nodes, nodeToUnset);
         elements.push(new Element(nodeToUnset))
+        return self;
     };
 
 
@@ -84,6 +89,9 @@ var Topology = function (elementsToAddToTopology, nodesNumber) {
     };
     this.getElements = function () {
         return elements;
+    };
+    this.unsetElement = function (elementToUnset) {
+        _.pull(elements, elementToUnset);
     };
 
     var setCenter = function (centre, next) {
@@ -124,7 +132,18 @@ var Topology = function (elementsToAddToTopology, nodesNumber) {
             }
         }
         setTopologyCost();
+        return self;
     };
+
+    // this.rearrangeGraph = function (node) {
+    //     var minCost = self.getTopologyCost();
+    //     self.generateGraph();
+    //     if(self.getTopologyCost() < minCost){
+    //         self.unsetNode(node);
+    //
+    //     }
+    //
+    // };
 
     var setTopologyCost = function () {
         var costWithoutRelations = (ELEMENT_COST * elements.length) + (NODE_COST * nodes.length) + CENTRE_COST;
@@ -194,7 +213,7 @@ var Element = function (coordinates) {
 
     return this;
 };
-var Node = function (buildCost, coordinates) {
+var Node = function (coordinates) {
     var self = this;
     this.id = parseInt(Math.random().toString().slice(3, 10));
     this.x = coordinates.x;
@@ -227,33 +246,46 @@ var Node = function (buildCost, coordinates) {
         }
     };
 
-    return this;
-};
-
-var coordDescendingMethod = function () {
-    var topology = new Topology(ELEMENTS, 5);
-    // console.log("До отвязки узла", topology.getTopologyCost());
-    topology.generateGraph();
-
-    var currRearrangable = _.sample(topology.getNodes());
-    // topology.unsetNode(currRearrangable);
-    // console.log("После отвязки узла", topology.getTopologyCost());
-    // console.log("Elements count: ", topology.getElements().length);
-    // console.log("Nodes count: ", topology.getNodes().length);
-
-    this.rearrangeTopology = function (topologyToRearrange) {
-        console.log("BAFORE", topologyToRearrange.getNodes().length);
-        var currRearrabngable = _.sample(topologyToRearrange.getNodes());
-        topologyToRearrange.unsetNode(currRearrabngable);
-        console.log("AFTAR", topologyToRearrange.getNodes().length);
-        // console.log(util.inspect(topologyToRearrange, {depth:null}));
-        // for(var t = 0; t < topologyToRearrange.getElements().length; t++){
-        //     // _.random()
-        // }
+    this.disconnectAllElements = function () {
+        self.elementsConnected = [];
+    };
+    this.getConnectionById = function (id) {
+        return _.filter(self.elementsConnected, function (element) {
+            return element.id == id;
+        })
     };
 
-    this.rearrangeTopology(topology)
+    return self;
+};
 
+var main = function () {
+    var topology = new Topology(ELEMENTS, 10);
+    var graph = topology.generateGraph();
+    var xyita = coordDescendingMethod(graph, topology.getNodes())
+    // console.log(xyita);
+};
+
+function coordDescendingMethod(graph, nodes) {
+    var answar = [];
+    var topologyCost = graph.getTopologyCost();
+    var newGraph = graph.generateGraph();
+    for (var n = 0; n < nodes.length; n++) {
+        console.log(
+            "Iteration #" + "" + n + ": \n", "Topology costs: ", graph.getTopologyCost() + "\n",
+            "Nodes count: ", nodes[n].elementsConnectedCount, "-------", newGraph.getTopologyCost()
+        );
+        if (topologyCost > newGraph.getTopologyCost()) {
+            console.log("asdadsadsa");
+            topologyCost = newGraph.getTopologyCost();
+            graph = newGraph.generateGraph();
+        }else{
+
+        }
+        newGraph.unsetNode(nodes[n]);
+        newGraph.generateGraph();
+
+    }
+    return newGraph;
 };
 
 
@@ -269,7 +301,7 @@ async.waterfall([
         callback();
     },
     function (callback) {
-        coordDescendingMethod();
+        main();
         callback(null, 'three');
     }
 ], function (err, result) {
